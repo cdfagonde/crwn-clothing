@@ -1,16 +1,19 @@
 import React from 'react';
 
+import CollectionItem from '../collection-item/collection-item.component';
+
 import './collection-preview.styles.scss';
 
+
 const CollectionPreview = ({ title, items }) => (
-    <div className='Collection-preview'>
+    <div className='collection-preview'>
         <h1 className='title'>{title.toUpperCase()}</h1>
         <div className='preview'>
             {
                 items
                 .filter( (item,idx) => idx < 4)   // No preview mostraremos só 4 items
-                .map( item => (
-                    <div key={item.id}> {item.name} </div>
+                .map( ({id, ...otherItemProps}) => (
+                    <CollectionItem key={id} id={id} {...otherItemProps}  />
                 ))
             }
         </div>
