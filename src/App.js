@@ -33,7 +33,7 @@ class App extends React.Component {
             }
           }, () => {
             // Colocamos aqui para ter certeza que o setState já rodou..
-            console.log( this.state.currentUser );
+            // console.log( this.state.currentUser );
           });
         });
       } else {
