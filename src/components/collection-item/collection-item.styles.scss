@@ -22,6 +22,15 @@
     display: none;
   }
 
+  // Usado na versão styled-componentes
+  button {
+    width: 80%;
+    opacity: 0.7;
+    position: absolute;
+    top: 255px;
+    // display: none;
+  }
+
   &:hover {
     .image {
       opacity: 0.8;
