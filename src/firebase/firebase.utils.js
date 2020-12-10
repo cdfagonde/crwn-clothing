@@ -20,6 +20,12 @@ export const createUserProfileDocument = async (userAuth,additionalData) => {
 
     const userRef = firestore.doc(`users/${userAuth.uid}`);
     const snapShot = await userRef.get();
+    // console.log(snapShot.data());
+
+    // Só parsa teste
+    // const collectionRef = firestore.collection('users');
+    // const collectionSnapshot = await collectionRef.get();
+    // console.log({ collection: collectionSnapshot.docs.map( doc => doc.data() ) });
 
     if (!snapShot.exists) {
         // Usuário não existe, então criamos..
@@ -41,11 +47,37 @@ export const createUserProfileDocument = async (userAuth,additionalData) => {
     return userRef;
 }
 
+// Função para carregar todos os elementos de SHOP_DATA
+export const addCollectionAndDocuments = async ( collectionKey, objectsToAdd ) => {
+    const collectionRef = firestore.collection(collectionKey);
+
+    // Esse processo batch permite simular uma transação.
+
+    // O primeiro será barrer todos os objetos e criar cada um dos documentos..
+    const batch = firestore.batch();
+    objectsToAdd.forEach( obj => {
+        const newDocRef = collectionRef.doc();   // Não especificamos chave, portanto firebase criará automaticamente o key
+        // const newDocRef = collectionRef.doc(obj.title);   // Desta forma criariamos o objeto usando o título como key
+        
+        batch.set(newDocRef,obj);
+    });
+
+    // Com os documentos criados, mandaremos nosso batch inteiro e de uma única vez..
+    return await batch.commit();
+}
+
+
 try {
-    firebase.initializeApp(config);
+    // firebase.initializeApp(config);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(config);
+     } else {
+        firebase.app(); // if already initialized, use that one
+     }
 } catch(err) {
     console.error(err);
 }
+
 
 
 export const auth = firebase.auth();

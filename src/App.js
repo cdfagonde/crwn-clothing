@@ -12,14 +12,22 @@ import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up
 import CheckoutPage from './pages/checkout/checkout.component';
 
 import { auth, createUserProfileDocument } from './firebase/firebase.utils';
+// import { auth, createUserProfileDocument, addCollectionAndDocuments } from './firebase/firebase.utils';
 import { setCurrentUser } from './redux/user/user.actions';
 import { selectCurrentUser } from './redux/user/user.selectors';
 
+// Usaremos isto para criar SHOP_DATA em firebase
+import { selectCollectionsForPreview } from './redux/shop/shop.selectors';
+
+
+//
 class App extends React.Component {
 
   unsubscribeFromAuth = null;
 
   componentDidMount() {
+    // collectionsArray foi usada somente para criar a collection inicial
+    // const { setCurrentUser, collectionsArray } = this.props;
     const { setCurrentUser } = this.props;
 
     this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
@@ -33,9 +41,18 @@ class App extends React.Component {
           });
 
         });
-      } else {
-        setCurrentUser(userAuth);
       }
+
+      // Definimos nosso usuário corrente
+      setCurrentUser(userAuth);
+
+      // Este processo será usado para criar nossa collection que substituirá SHOP_DATA. Usamos somente 1 vez!
+      // Desta forma criaremos nossas collections com todos os valores 
+      // addCollectionAndDocuments('collections', collectionsArray);
+      // Aqui criaremos nossas collections somente com o nome e os items. Esta foi a versão que usamos.
+      // addCollectionAndDocuments('collections', collectionsArray.map(({title,items}) => ({ title, items }) ));
+      // Usamos a segunda versão, e após criar a collection, não precisamos mais dela por aqui!
+
     });
   }
 
@@ -75,7 +92,8 @@ class App extends React.Component {
 
 // 2) Versão usando createStructuredSelector
 const mapStateToProps = createStructuredSelector({
-  currentUser: selectCurrentUser
+  currentUser: selectCurrentUser,
+  collectionsArray: selectCollectionsForPreview
 });
 
 const mapDispatchToProps = dispatch => ({
