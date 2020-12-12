@@ -67,6 +67,29 @@ export const addCollectionAndDocuments = async ( collectionKey, objectsToAdd ) =
 }
 
 
+export const convertCollectionsSnapshotToMap = collections => {
+    const transformedCollection = collections.docs.map(doc => {
+        const { title, items } = doc.data();
+        return {
+            routeName: encodeURI(title.toLowerCase()),
+            id: doc.id,
+            title,
+            items
+        }
+    });
+    
+    // Vejamos se está tudo em ordem..
+    // console.log(transformedCollection);
+
+    return transformedCollection.reduce((accumulator,collection) => {
+        // Montamos objetos no formato { titulo: {collection}}
+        // Exemplo: { hats: {...collection1}, jackets: {...collection2}}
+        accumulator[collection.title.toLowerCase()] = collection;
+        return accumulator
+    }, {});
+}
+
+
 try {
     // firebase.initializeApp(config);
     if (!firebase.apps.length) {
