@@ -27,12 +27,39 @@ class ShopPage extends React.Component {
         const { updateCollections } = this.props;
         const collectionRef = firestore.collection('collections');
 
-        collectionRef.onSnapshot( async snapshot => {
+        // -------------------------------------------------------------------------------
+        // Método 1: Usaremos padrão observable-observer, disponibilizado por firebase. 
+        // -------------------------------------------------------------------------------
+        // Este método é bem melhor, porque proporciona atualização de dados nos 2 sentidos.
+        // collectionRef.onSnapshot( async snapshot => {
+        //     const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+        //     // console.log(collectionsMap);
+        //     updateCollections(collectionsMap);
+        //     this.setState({ loading: false });
+        // });
+
+        // -------------------------------------------------------------------------------
+        // Método 2: Método get tradicional, que retorna uma promise.
+        // -------------------------------------------------------------------------------
+        // Aqui não teremos atualização nos 2 sentidos!
+        collectionRef.get().then(snapshot => {
             const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
             // console.log(collectionsMap);
             updateCollections(collectionsMap);
             this.setState({ loading: false });
         });
+
+        // -------------------------------------------------------------------------------
+        // Método 3: Acesso via rest api.
+        // -------------------------------------------------------------------------------
+        // A forma de montar a url depende de cada banco. A seguir acesso firebase.
+        // fetch(
+        //     'https://firestore.googleapis.com/v1/projects/crwn-clothing-db-9cde8/databases/(default)/documents/collections'
+        // )
+        // .then(response => response.json())
+        // .then(collections => console.log(collections));
+        // Funciona, mas é um porre! Firebase retorna um array bem chato de trabalhar, mas os dados estão ai, para quem quiser..  :-(
+
     }
 
     // 
