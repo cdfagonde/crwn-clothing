@@ -1,12 +1,13 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
+import { createStructuredSelector } from 'reselect';
 import { connect } from 'react-redux';
 
 import CollectionOverview from '../../components/collections-overview/collections-overview.component';
 import CollectionPage from '../collection/collection.component';
 
-import { firestore, convertCollectionsSnapshotToMap } from '../../firebase/firebase.utils';
-import { updateCollections } from '../../redux/shop/shop.actions';
+import { fetchCollectionsStartAsync } from '../../redux/shop/shop.actions';
+import { selectIsCollectionFetching } from '../../redux/shop/shop.selectors';
 
 import WithSpinner from '../../components/with-spinner/with-spinner.component';
 
@@ -15,67 +16,74 @@ const CollectionPageWithSpinner = WithSpinner(CollectionPage);
 
 
 class ShopPage extends React.Component {
-    // Agora podemos definir state sem precisar constructor. Isso será feito por baixo dos panos.
-    state = {
-        loading: true
-    };
 
-    unsubscribeFromSnapshot = null;
-
+    // Tudo isso era antes do thunk..
+    // // Agora podemos definir state sem precisar constructor. Isso será feito por baixo dos panos.
+    // state = {
+    //     loading: true
+    // };
     //
+    // unsubscribeFromSnapshot = null;
+    //
+    // Primeira versão do DisMount
+    // componentDidMount() {
+    //     const { updateCollections } = this.props;
+    //     const collectionRef = firestore.collection('collections');
+    //
+    //     // -------------------------------------------------------------------------------
+    //     // Método 1: Usaremos padrão observable-observer, disponibilizado por firebase. 
+    //     // -------------------------------------------------------------------------------
+    //     // Este método é bem melhor, porque proporciona atualização de dados nos 2 sentidos.
+    //     // collectionRef.onSnapshot( async snapshot => {
+    //     //     const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+    //     //     // console.log(collectionsMap);
+    //     //     updateCollections(collectionsMap);
+    //     //     this.setState({ loading: false });
+    //     // });
+    //
+    //     // -------------------------------------------------------------------------------
+    //     // Método 2: Método get tradicional, que retorna uma promise.
+    //     // -------------------------------------------------------------------------------
+    //     // Aqui não teremos atualização nos 2 sentidos!
+    //     collectionRef.get().then(snapshot => {
+    //         const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+    //         // console.log(collectionsMap);
+    //         updateCollections(collectionsMap);
+    //         this.setState({ loading: false });
+    //     });
+    //
+    //     // -------------------------------------------------------------------------------
+    //     // Método 3: Acesso via rest api.
+    //     // -------------------------------------------------------------------------------
+    //     // A forma de montar a url depende de cada banco. A seguir acesso firebase.
+    //     // fetch(
+    //     //     'https://firestore.googleapis.com/v1/projects/crwn-clothing-db-9cde8/databases/(default)/documents/collections'
+    //     // )
+    //     // .then(response => response.json())
+    //     // .then(collections => console.log(collections));
+    //     // Funciona, mas é um porre! Firebase retorna um array bem chato de trabalhar, mas os dados estão ai, para quem quiser..  :-(
+    //
+    // }
+
+    // 
     componentDidMount() {
-        const { updateCollections } = this.props;
-        const collectionRef = firestore.collection('collections');
-
-        // -------------------------------------------------------------------------------
-        // Método 1: Usaremos padrão observable-observer, disponibilizado por firebase. 
-        // -------------------------------------------------------------------------------
-        // Este método é bem melhor, porque proporciona atualização de dados nos 2 sentidos.
-        // collectionRef.onSnapshot( async snapshot => {
-        //     const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
-        //     // console.log(collectionsMap);
-        //     updateCollections(collectionsMap);
-        //     this.setState({ loading: false });
-        // });
-
-        // -------------------------------------------------------------------------------
-        // Método 2: Método get tradicional, que retorna uma promise.
-        // -------------------------------------------------------------------------------
-        // Aqui não teremos atualização nos 2 sentidos!
-        collectionRef.get().then(snapshot => {
-            const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
-            // console.log(collectionsMap);
-            updateCollections(collectionsMap);
-            this.setState({ loading: false });
-        });
-
-        // -------------------------------------------------------------------------------
-        // Método 3: Acesso via rest api.
-        // -------------------------------------------------------------------------------
-        // A forma de montar a url depende de cada banco. A seguir acesso firebase.
-        // fetch(
-        //     'https://firestore.googleapis.com/v1/projects/crwn-clothing-db-9cde8/databases/(default)/documents/collections'
-        // )
-        // .then(response => response.json())
-        // .then(collections => console.log(collections));
-        // Funciona, mas é um porre! Firebase retorna um array bem chato de trabalhar, mas os dados estão ai, para quem quiser..  :-(
-
+        const { fetchCollectionsStartAsync } = this.props;
+        fetchCollectionsStartAsync();
     }
 
     // 
     render() {
-        const { match } = this.props;
-        const { loading } = this.state;
+        const { match,isCollectionFetching } = this.props;
 
         return (
             <div className='shop-page'>
                 <Route exact path={`${match.path}`} 
                     // component={CollectionOverview}
-                    render={(props) => <CollectionOverviewWithSpinner isLoading={loading} {...props} /> }
+                    render={(props) => <CollectionOverviewWithSpinner isLoading={isCollectionFetching} {...props} /> }
                 />
                 <Route path={`${match.path}/:collectionId`} 
                     // component={CollectionPage} 
-                    render={(props) => <CollectionPageWithSpinner isLoading={loading} {...props} /> }
+                    render={(props) => <CollectionPageWithSpinner isLoading={isCollectionFetching} {...props} /> }
                 />
             </div>
         );
@@ -83,8 +91,12 @@ class ShopPage extends React.Component {
 };
 
 
-const mapDispatchToProps = dispatch => ({
-    updateCollections: collectionsMap => dispatch(updateCollections(collectionsMap))
+const mapStateToProps = createStructuredSelector({
+    isCollectionFetching: selectIsCollectionFetching
 })
 
-export default connect(null,mapDispatchToProps)(ShopPage);
+const mapDispatchToProps = dispatch => ({
+    fetchCollectionsStartAsync: () => dispatch(fetchCollectionsStartAsync())
+})
+
+export default connect(mapStateToProps,mapDispatchToProps)(ShopPage);
