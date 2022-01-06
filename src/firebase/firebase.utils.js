@@ -22,7 +22,7 @@ export const createUserProfileDocument = async (userAuth,additionalData) => {
     const snapShot = await userRef.get();
     // console.log(snapShot.data());
 
-    // Só parsa teste
+    // Só para teste
     // const collectionRef = firestore.collection('users');
     // const collectionSnapshot = await collectionRef.get();
     // console.log({ collection: collectionSnapshot.docs.map( doc => doc.data() ) });
@@ -102,12 +102,20 @@ try {
 }
 
 
+export const getCurrentUser = () => {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(userAuth => {
+            unsubscribe();
+            resolve(userAuth);
+        }, reject);
+    })
+}
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
-const provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
-export const signInWithGoogle = () => auth.signInWithPopup(provider);
+export const googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+export const signInWithGoogle = () => auth.signInWithPopup(googleProvider);
 
 export default firebase;
